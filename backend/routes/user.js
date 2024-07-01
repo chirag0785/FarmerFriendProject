@@ -43,11 +43,7 @@ router.post('/login',async (req,res,next)=>{
         if(!isPasswordCorrect){
             return res.status(200).json({userExists:true,passwordCorrect:false,msg:'Password Incorrect'});
         }
-
-        //token banana h
-        const token=jwt.sign({
-            _id:user._id,
-        },process.env.TOKEN_SECRET);
+        const token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
         user.token=token;
         await user.save();
 
@@ -63,6 +59,24 @@ router.post('/login',async (req,res,next)=>{
 
     }catch(err){
         console.log(err);
+        res.status(500).json({msg:"internal server error"});
+    }
+})
+
+router.post('/logout',async (req,res,next)=>{
+    const {username,password,email}=req.body;
+    try{
+        let user=await User.findOne({
+            $or:[
+                {username:username},
+                {email:email}
+            ]
+        })
+
+        user.token=undefined;
+        await user.save();
+        res.clearCookie('jwt').json({msg:"logged out"});
+    }catch(err){
         res.status(500).json({msg:"internal server error"});
     }
 })

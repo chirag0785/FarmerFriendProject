@@ -24,6 +24,7 @@ const userSchema = new Schema({
     }
 })
 userSchema.pre("save",async function (next){
+    if(!this.isModified("password")) return next();
     try{
         const user=this;
         const hash=await bcrypt.hash(user.password,10);
